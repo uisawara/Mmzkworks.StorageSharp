@@ -47,6 +47,12 @@ jobs:
       with:
         dotnet-version: '8.0.x'
     
+    - name: Restore dependencies
+      run: dotnet restore
+    
+    - name: Build
+      run: dotnet build --no-restore --configuration Release
+    
     - name: Pack NuGet Package
       run: dotnet pack StorageSharp/StorageSharp.csproj --configuration Release --output nupkgs
     
