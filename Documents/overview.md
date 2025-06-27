@@ -20,6 +20,14 @@
 
 ![image](./img/550e8400-e29b-41d4-a716-446655440001.png)
 
+```csharp
+var cachedStorage = new CachedStorage(
+    new FileStorage("Cache/Download/"),
+    new SampleAPIStorage());
+var fileData = await cachedStorage.ReadAsync("example.bin");
+// 2回目以降のReadAsyncはキャッシュから高速に取得される
+```
+
 ### ファイルキャッシュ＋ZIP展開
 
 - ダウンロードする対象がZipファイルの場合の例。
@@ -38,6 +46,7 @@ var pack = new CachedStorage(
     new SampleAPIStorage(),
     new FileStorage("Cache/Download/"));
 var zipFilePath = pack.Load();
+var zipFilePath = await pack.ReadAsync("archive.zip");
 // zipFilePathにある.zipを手動でdecompressする
 ```
 
@@ -75,4 +84,15 @@ var decompressedZipPath = await packages.Load(archiveScheme);
   - オンメモリにダウンロードデータが配置されるため、メモリ使用量には注意が必要です。
 
 ![image](./img/550e8400-e29b-41d4-a716-446655440004.png)
+
+```csharp
+var packages = new ZippedPacks(
+    new ZippedPacks.Settings("Tmp/Extracted"),
+    new CachedStorage(
+        new MemoryStorage(),
+        new SampleAPIStorage()));
+var decompressedZipPath = await packages.Load(archiveScheme);
+// 展開したファイルを読込・使用
+await packages.Unload(archiveScheme);
+```
 
