@@ -11,7 +11,7 @@
         <Authors>StorageSharp Team</Authors>
         <Company>StorageSharp</Company>
         <PackageReadmeFile>README.md</PackageReadmeFile>
-        <RepositoryUrl>https://github.com/your-username/storageSharp</RepositoryUrl>
+        <RepositoryUrl>https://github.com/uisawara/Mmzkworks.StorageSharp</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
         <Title>Mmzkworks.StorageSharp</Title>
