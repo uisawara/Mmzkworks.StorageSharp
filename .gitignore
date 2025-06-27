@@ -5,3 +5,5 @@ StorageSharp.Samples/obj
 StorageSharp.Tests/bin
 StorageSharp.Tests/obj
 .idea
+.vs
+nupkgs
