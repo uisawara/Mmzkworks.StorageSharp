@@ -7,26 +7,36 @@
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <Description>StorageSharpは、単独バイナリファイルとフォルダファイル集合を扱うための柔軟なストレージシステムです。</Description>
         <PackageTags>storage;file;memory;cache;zip;archive</PackageTags>
-        <PackageId>StorageSharp</PackageId>
+        <PackageId>Mmzkworks.StorageSharp</PackageId>
         <Authors>StorageSharp Team</Authors>
         <Company>StorageSharp</Company>
-        <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <RepositoryUrl>https://github.com/your-username/storageSharp</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
+        <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+        <Title>Mmzkworks.StorageSharp</Title>
+        <PackageLicenseFile>LICENSE</PackageLicenseFile>
+        <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
+        <IncludeSymbols>False</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+        <Version>0.0.1</Version>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="SharpZipLib" Version="1.4.2"/>
-        <PackageReference Include="Newtonsoft.Json" Version="13.0.3"/>
+        <PackageReference Include="SharpZipLib" Version="1.4.2" />
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     </ItemGroup>
 
     <ItemGroup>
-        <Compile Remove="Program.cs"/>
+        <Compile Remove="Program.cs" />
     </ItemGroup>
 
     <ItemGroup>
-        <None Include="../README.md" Pack="true" PackagePath="/"/>
+        <None Include="../README.md" Pack="true" PackagePath="/" />
+        <None Include="..\LICENSE">
+          <Pack>True</Pack>
+          <PackagePath>\</PackagePath>
+        </None>
     </ItemGroup>
 
 </Project>
