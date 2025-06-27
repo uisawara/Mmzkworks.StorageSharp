@@ -3,6 +3,9 @@
 StorageSharpは、単独バイナリファイルとフォルダファイル集合を扱うための柔軟なストレージシステムです。
 組み合わせることでファイルシステムとキャッシュ、フォルダファイル集合(Packと呼んでいます)を柔軟に扱うことができます。
 
+[![CI/CD Pipeline](https://github.com/uisawara/storageSharp/actions/workflows/ci.yml/badge.svg)](https://github.com/uisawara/storageSharp/actions/workflows/ci.yml)
+[![NuGet](https://img.shields.io/nuget/v/Mmzkworks.StorageSharp.svg)](https://www.nuget.org/packages/Mmzkworks.StorageSharp/)
+
 ## 機能
 
 ### ストレージ機能 (IStorage)
