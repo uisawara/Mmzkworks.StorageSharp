@@ -48,6 +48,21 @@ jobs:
       with:
         dotnet-version: '8.0.x'
     
+    - name: Extract version from release tag
+      id: version
+      run: |
+        # リリースタグからバージョンを抽出 (例: v0.0.1 -> 0.0.1)
+        VERSION=${GITHUB_REF#refs/tags/}
+        VERSION=${VERSION#v}
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "Extracted version: $VERSION"
+    
+    - name: Update project version
+      run: |
+        # プロジェクトファイルのバージョンを更新
+        sed -i "s/<Version>.*<\/Version>/<Version>${{ steps.version.outputs.version }}<\/Version>/g" StorageSharp/StorageSharp.csproj
+        echo "Updated project version to ${{ steps.version.outputs.version }}"
+    
     - name: Restore dependencies
       run: dotnet restore
     
@@ -70,4 +85,4 @@ jobs:
         fi
     
     - name: Publish to NuGet
-      run: dotnet nuget push nupkgs/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json 
+      run: dotnet nuget push nupkgs/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate 
