@@ -41,11 +41,50 @@ jobs:
     
     steps:
     - uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
     
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '8.0.x'
+    
+    - name: Get current version and bump patch
+      id: version
+      run: |
+        $releaseTag = "${{ github.event.release.tag_name }}"
+        if ($releaseTag -match '^v(\d+)\.(\d+)\.(\d+)$') {
+          $major = [int]$matches[1]
+          $minor = [int]$matches[2]
+          $patch = [int]$matches[3] + 1
+        } else {
+          # デフォルトバージョンから開始
+          $major = 0
+          $minor = 0
+          $patch = 1
+        }
+        $newVersion = "$major.$minor.$patch"
+        echo "new_version=$newVersion" >> $env:GITHUB_OUTPUT
+        echo "New version: $newVersion"
+    
+    - name: Update version in csproj
+      run: |
+        $newVersion = "${{ steps.version.outputs.new_version }}"
+        $csprojPath = "StorageSharp/StorageSharp.csproj"
+        $content = Get-Content $csprojPath -Raw
+        $content = $content -replace '<Version>.*?</Version>', "<Version>$newVersion</Version>"
+        Set-Content $csprojPath $content -NoNewline
+        echo "Updated version to $newVersion"
+    
+    - name: Commit version bump
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add StorageSharp/StorageSharp.csproj
+        git commit -m "Bump version to ${{ steps.version.outputs.new_version }} [skip ci]"
+        git tag "v${{ steps.version.outputs.new_version }}"
+        git push
+        git push --tags
     
     - name: Pack NuGet Package
       run: dotnet pack StorageSharp/StorageSharp.csproj --configuration Release --output nupkgs
