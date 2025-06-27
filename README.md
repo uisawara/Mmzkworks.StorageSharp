@@ -1,48 +1,47 @@
 # StorageSharp
 
-StorageSharpは、単独バイナリファイルとフォルダファイル集合を扱うための柔軟なストレージシステムです。
-組み合わせることでファイルシステムとキャッシュ、フォルダファイル集合(Packと呼んでいます)を柔軟に扱うことができます。
+StorageSharp is a flexible storage system for handling single binary files and folder file collections. By combining them, you can flexibly handle file systems, caching, and folder file collections (called Packs).
 
 [![CI/CD Pipeline](https://github.com/uisawara/storageSharp/actions/workflows/ci.yml/badge.svg)](https://github.com/uisawara/storageSharp/actions/workflows/ci.yml)
 [![NuGet](https://img.shields.io/nuget/v/Mmzkworks.StorageSharp.svg)](https://www.nuget.org/packages/Mmzkworks.StorageSharp/)
 
-## 機能
+## Features
 
-### ストレージ機能 (IStorage)
+### Storage Features (IStorage)
 
-- **FileStorage**: ファイルシステムベースのストレージ
-- **MemoryStorage**: メモリベースのストレージ
-- **CachedStorage**: キャッシュ機能付きストレージ
+- **FileStorage**: File system-based storage
+- **MemoryStorage**: Memory-based storage
+- **CachedStorage**: Storage with caching functionality
 
-### アーカイブ機能 (IPacks)
+### Archive Features (IPacks)
 
-- **ZippedPacks**: ZIP形式でパッケージを管理するアーカイブ実装
+- **ZippedPacks**: Archive implementation that manages packages in ZIP format
 
-## 基本的な使用方法
+## Basic Usage
 
-### ストレージの使用
+### Using Storage
 
 ```csharp
-// ファイルストレージ
+// File storage
 var fileStorage = new FileStorage("StorageDirectory");
 
-// データの書き込み
+// Writing data
 await fileStorage.WriteAsync("key.txt", data);
 
-// データの読み込み
+// Reading data
 var data = await fileStorage.ReadAsync("key.txt");
 ```
 
-### キャッシュ付きストレージの使用
+### Using Cached Storage
 
 ```csharp
 var storage = new CachedStorage(
-    cache: new MemoryStorage(), // キャッシュ用ストレージ
-    origin: new FileStorage("OriginStorage") // オリジンストレージ
+    cache: new MemoryStorage(), // Cache storage
+    origin: new FileStorage("OriginStorage") // Origin storage
 );
 ```
 
-### ZIPパッケージの使用
+### Using ZIP Packages
 
 ```csharp
 var packages = new ZippedPacks(
@@ -50,121 +49,121 @@ var packages = new ZippedPacks(
     storage
 );
 
-// ディレクトリをアーカイブに追加
+// Add directory to archive
 var archiveScheme = await packages.Add(directoryPath);
 
-// アーカイブをロード
+// Load archive
 var loadedPath = await packages.Load(archiveScheme);
 
-// ファイルを使用
+// Use files
 // ...
 
-// アーカイブをアンロード
+// Unload archive
 await packages.Unload(archiveScheme);
 
-// アーカイブを削除
+// Delete archive
 await packages.Delete(archiveScheme);
 
-// すべてのアーカイブをリストアップ
+// List all archives
 var list = await packages.ListAll();
 ```
 
-## セットアップ
+## Setup
 
-### ライブラリとして使用
+### Using as a Library
 
 ```bash
-# プロジェクトに参照を追加
+# Add reference to project
 dotnet add reference path/to/StorageSharp.csproj
 ```
 
-### NuGetパッケージとして使用（将来的に）
+### Using as NuGet Package (in the future)
 
 ```bash
 dotnet add package StorageSharp
 ```
 
-### 開発環境のセットアップ
+### Development Environment Setup
 
 ```bash
-# リポジトリをクローン
+# Clone repository
 git clone <repository-url>
 cd storageSharp
 
-# 依存関係を復元
+# Restore dependencies
 dotnet restore
 
-# ビルド
+# Build
 dotnet build
 
-# テスト実行
+# Run tests
 dotnet test
 ```
 
-### サンプルプログラムの実行
+### Running Sample Programs
 
 ```bash
-# サンプルプロジェクトを実行
+# Run sample project
 cd StorageSharp.Samples
 dotnet run
 ```
 
-## プロジェクト構造
+## Project Structure
 
 ```
 storageSharp/
-├── StorageSharp/                    # メインライブラリ
+├── StorageSharp/                    # Main library
 │   ├── Storages/
-│   │   ├── IStorage.cs              # ストレージインターフェース
-│   │   ├── FileStorage.cs           # ファイルストレージ実装
-│   │   ├── MemoryStorage.cs         # メモリストレージ実装
-│   │   └── CachedStorage.cs         # キャッシュ付きストレージ実装
+│   │   ├── IStorage.cs              # Storage interface
+│   │   ├── FileStorage.cs           # File storage implementation
+│   │   ├── MemoryStorage.cs         # Memory storage implementation
+│   │   └── CachedStorage.cs         # Cached storage implementation
 │   ├── Packs/
-│   │   ├── IPacks.cs                # アーカイブインターフェース
-│   │   └── ZippedPacks.cs           # ZIPパッケージ実装
-│   └── StorageSharp.csproj          # ライブラリプロジェクト
-├── StorageSharp.Samples/            # サンプルプロジェクト
-│   ├── Program.cs                   # サンプルプログラム
-│   ├── StorageSharp.Samples.csproj  # サンプルプロジェクト
-│   └── README.md                    # サンプル用README
-├── StorageSharp.Tests/              # テストプロジェクト
-│   ├── UnitTests/                   # ユニットテスト
-│   └── IntegrationTests/            # 統合テスト
-├── storageSharp.sln                 # ソリューションファイル
-└── README.md                        # このファイル
+│   │   ├── IPacks.cs                # Archive interface
+│   │   └── ZippedPacks.cs           # ZIP package implementation
+│   └── StorageSharp.csproj          # Library project
+├── StorageSharp.Samples/            # Sample project
+│   ├── Program.cs                   # Sample program
+│   ├── StorageSharp.Samples.csproj  # Sample project
+│   └── README.md                    # Sample README
+├── StorageSharp.Tests/              # Test project
+│   ├── UnitTests/                   # Unit tests
+│   └── IntegrationTests/            # Integration tests
+├── storageSharp.sln                 # Solution file
+└── README.md                        # This file
 ```
 
-## 使用例
+## Usage Examples
 
-### 基本的なストレージ操作
+### Basic Storage Operations
 
 ```csharp
-// ファイルストレージの使用
+// Using file storage
 var fileStorage = new FileStorage("ExampleStorage");
 var testData = System.Text.Encoding.UTF8.GetBytes("Hello, StorageSharp!");
 await fileStorage.WriteAsync("test.txt", testData);
 
-// メモリストレージの使用
+// Using memory storage
 var memoryStorage = new MemoryStorage();
 await memoryStorage.WriteAsync("memory-test.txt", testData);
 ```
 
-### キャッシュ付きストレージの使用
+### Using Cached Storage
 
 ```csharp
 var cache = new MemoryStorage();
 var origin = new FileStorage("OriginStorage");
 var cachedStorage = new CachedStorage(cache, origin);
 
-// データの書き込み
+// Writing data
 var data = System.Text.Encoding.UTF8.GetBytes("Cached data example");
 await cachedStorage.WriteAsync("cached-file.txt", data);
 
-// 読み込み（キャッシュヒット/ミスが自動管理される）
+// Reading data (cache hit/miss is automatically managed)
 var readData = await cachedStorage.ReadAsync("cached-file.txt");
 ```
 
-### ZIPパッケージの使用
+### Using ZIP Packages
 
 ```csharp
 var storage = new FileStorage("ZippedPacks");
@@ -173,28 +172,29 @@ var packages = new ZippedPacks(
     storage
 );
 
-// ディレクトリをアーカイブに追加
+// Add directory to archive
 var archiveScheme = await packages.Add("MyDirectory");
 
-// アーカイブをロードして使用
+// Load and use archive
 var loadedPath = await packages.Load(archiveScheme);
-// ファイルを使用...
+// Use files...
 await packages.Unload(archiveScheme);
 
-// アーカイブを削除
+// Delete archive
 await packages.Delete(archiveScheme);
 ```
 
-## 注意事項
+## Notes
 
-- 一時ファイルは自動的に管理されますが、大量のデータを扱う場合は適切なクリーンアップを考慮してください
-- キャッシュ機能はメモリ使用量に注意して使用してください
-- ZIPパッケージ機能はSharpZipLibライブラリを使用しています
+- Temporary files are automatically managed, but please consider appropriate cleanup when handling large amounts of data
+- Use the caching functionality with attention to memory usage
+- The ZIP package functionality uses the SharpZipLib library
 
-## 生成AIの利用について
+## About AI Generation
 
-- 本repoはChatGPT, Cursorによる生成コードを含みます。
+- This document has been machine translated.
+- This repo contains generated code by ChatGPT and Cursor.
 
-## ライセンス
+## License
 
-このプロジェクトはMITライセンスの下で公開されています。 
+This project is published under the MIT License. 
