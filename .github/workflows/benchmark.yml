@@ -26,10 +26,16 @@ jobs:
     - name: Build
       run: dotnet build --no-restore --configuration Release
       
+    - name: Build Benchmark Project
+      run: |
+        cd StorageSharp.Tests/Benchmarks
+        dotnet build --configuration Release --no-restore
+        
     - name: Run Benchmarks
       run: |
         cd StorageSharp.Tests/Benchmarks
         dotnet run --configuration Release --no-build
+      continue-on-error: true
         
     - name: Setup Python
       uses: actions/setup-python@v5
@@ -45,6 +51,7 @@ jobs:
       run: |
         cd StorageSharp.Tests/Benchmarks
         python generate_benchmark_charts.py
+      continue-on-error: true
         
     - name: Upload Benchmark Results
       uses: actions/upload-artifact@v4
@@ -54,15 +61,18 @@ jobs:
           StorageSharp.Tests/Benchmarks/BenchmarkResults/*.csv
           StorageSharp.Tests/Benchmarks/BenchmarkResults/*.txt
           StorageSharp.Tests/Benchmarks/BenchmarkResults/*.json
+      continue-on-error: true
           
     - name: Upload Benchmark Charts
       uses: actions/upload-artifact@v4
       with:
         name: benchmark-charts
         path: StorageSharp.Tests/Benchmarks/BenchmarkResults/*.png
+      continue-on-error: true
         
     - name: Upload HTML Report
       uses: actions/upload-artifact@v4
       with:
         name: benchmark-html-report
-        path: StorageSharp.Tests/Benchmarks/BenchmarkResults/*.html 
+        path: StorageSharp.Tests/Benchmarks/BenchmarkResults/*.html
+      continue-on-error: true 

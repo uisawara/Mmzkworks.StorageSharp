@@ -29,17 +29,27 @@ namespace StorageSharp.Tests.Benchmarks
             
             try
             {
-                // 1. ApiStorageベンチマーク（Mockサーバーが必要）
-                Console.WriteLine("\n1. Running ApiStorage benchmarks...");
-                try
+                // CI環境かどうかを判定
+                var isCI = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CI"));
+                
+                if (!isCI)
                 {
-                    var apiSummary = BenchmarkRunner.Run<ApiStorageBenchmarks>(config);
-                    Console.WriteLine("ApiStorage benchmarks completed successfully.");
+                    // ローカル環境: ApiStorageベンチマーク（Mockサーバーが必要）
+                    Console.WriteLine("\n1. Running ApiStorage benchmarks...");
+                    try
+                    {
+                        var apiSummary = BenchmarkRunner.Run<ApiStorageBenchmarks>(config);
+                        Console.WriteLine("ApiStorage benchmarks completed successfully.");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Warning: ApiStorage benchmarks failed: {ex.Message}");
+                        Console.WriteLine("Make sure the mock server is running on http://localhost:8080");
+                    }
                 }
-                catch (Exception ex)
+                else
                 {
-                    Console.WriteLine($"Warning: ApiStorage benchmarks failed: {ex.Message}");
-                    Console.WriteLine("Make sure the mock server is running on http://localhost:8080");
+                    Console.WriteLine("\n1. Skipping ApiStorage benchmarks in CI environment (no mock server)");
                 }
                 
                 // 2. ストレージ比較ベンチマーク
