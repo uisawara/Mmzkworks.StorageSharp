@@ -20,10 +20,17 @@
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
         <PackageReference Include="Newtonsoft.Json" Version="13.0.3"/>
+        <PackageReference Include="BenchmarkDotNet" Version="0.13.12"/>
+        <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.13.12"/>
     </ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\StorageSharp\StorageSharp.csproj"/>
+    </ItemGroup>
+
+    <!-- MockServerファイルをビルド出力にコピー -->
+    <ItemGroup>
+        <None Include="MockServer\**\*" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
 
 </Project>

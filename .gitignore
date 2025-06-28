@@ -4,6 +4,10 @@ StorageSharp.Samples/bin
 StorageSharp.Samples/obj
 StorageSharp.Tests/bin
 StorageSharp.Tests/obj
+StorageSharp.Tests/Benchmarks/BenchmarkResults
+StorageSharp.Tests/Benchmarks/BenchmarkDotNet.Artifacts
 .idea
 .vs
 nupkgs
+StorageSharp.Tests/Benchmarks/bin
+StorageSharp.Tests/Benchmarks/obj

@@ -1,0 +1,68 @@
+name: StorageSharp Benchmarks
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:  # 手動実行可能
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+        
+    - name: Restore dependencies
+      run: dotnet restore
+      
+    - name: Build
+      run: dotnet build --no-restore --configuration Release
+      
+    - name: Run Benchmarks
+      run: |
+        cd StorageSharp.Tests/Benchmarks
+        dotnet run --configuration Release --no-build
+        
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        
+    - name: Install Python dependencies
+      run: |
+        cd StorageSharp.Tests/Benchmarks
+        pip install -r requirements.txt
+        
+    - name: Generate Benchmark Charts
+      run: |
+        cd StorageSharp.Tests/Benchmarks
+        python generate_benchmark_charts.py
+        
+    - name: Upload Benchmark Results
+      uses: actions/upload-artifact@v4
+      with:
+        name: benchmark-results
+        path: |
+          StorageSharp.Tests/Benchmarks/BenchmarkResults/*.csv
+          StorageSharp.Tests/Benchmarks/BenchmarkResults/*.txt
+          StorageSharp.Tests/Benchmarks/BenchmarkResults/*.json
+          
+    - name: Upload Benchmark Charts
+      uses: actions/upload-artifact@v4
+      with:
+        name: benchmark-charts
+        path: StorageSharp.Tests/Benchmarks/BenchmarkResults/*.png
+        
+    - name: Upload HTML Report
+      uses: actions/upload-artifact@v4
+      with:
+        name: benchmark-html-report
+        path: StorageSharp.Tests/Benchmarks/BenchmarkResults/*.html 
