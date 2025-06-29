@@ -1,0 +1,53 @@
+name: StorageSharp Benchmarks
+
+on:
+  workflow_dispatch:  # 手動実行のみ
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+        
+    - name: Restore and Build All Projects
+      run: dotnet build --configuration Release
+      
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        
+    - name: Install Python dependencies
+      run: |
+        cd StorageSharp.Tests/MockServer
+        pip install -r requirements.txt
+        
+    - name: Start Mock Server
+      run: |
+        cd StorageSharp.Tests/MockServer
+        python mock_storage_server.py &
+        sleep 5  # サーバー起動待機
+      continue-on-error: true
+        
+    - name: Run Benchmarks
+      run: |
+        cd StorageSharp.Tests/Benchmarks
+        dotnet run --configuration Release
+      continue-on-error: true
+        
+    - name: Upload Benchmark Results
+      uses: actions/upload-artifact@v4
+      with:
+        name: benchmark-results
+        path: |
+          StorageSharp.Tests/Benchmarks/BenchmarkResults/results/*.csv
+          StorageSharp.Tests/Benchmarks/BenchmarkResults/results/*.md
+          StorageSharp.Tests/Benchmarks/BenchmarkResults/results/*.html
+      continue-on-error: true 
