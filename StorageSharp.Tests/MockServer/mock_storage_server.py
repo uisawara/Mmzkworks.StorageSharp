@@ -121,6 +121,9 @@ class StorageRequestHandler(BaseHTTPRequestHandler):
     
     def _handle_read(self, key):
         """ファイル読み取り"""
+        # 固定遅延を追加（キャッシュの効果を分かりやすくするため）
+        time.sleep(0.5)  # 500msの遅延
+        
         data = self.storage.read(key)
         if data is None:
             self._send_error(404, f"Key '{key}' not found")
