@@ -1,11 +1,7 @@
 name: StorageSharp Benchmarks
 
 on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main ]
-  workflow_dispatch:  # 手動実行可能
+  workflow_dispatch:  # 手動実行のみ
 
 jobs:
   benchmark:
@@ -23,12 +19,6 @@ jobs:
     - name: Restore and Build All Projects
       run: dotnet build --configuration Release
       
-    - name: Run Benchmarks
-      run: |
-        cd StorageSharp.Tests/Benchmarks
-        dotnet run --configuration Release
-      continue-on-error: true
-        
     - name: Setup Python
       uses: actions/setup-python@v5
       with:
@@ -36,13 +26,20 @@ jobs:
         
     - name: Install Python dependencies
       run: |
-        cd StorageSharp.Tests/Benchmarks
+        cd StorageSharp.Tests/MockServer
         pip install -r requirements.txt
         
-    - name: Generate Benchmark Charts
+    - name: Start Mock Server
+      run: |
+        cd StorageSharp.Tests/MockServer
+        python mock_storage_server.py &
+        sleep 5  # サーバー起動待機
+      continue-on-error: true
+        
+    - name: Run Benchmarks
       run: |
         cd StorageSharp.Tests/Benchmarks
-        python generate_benchmark_charts.py
+        dotnet run --configuration Release
       continue-on-error: true
         
     - name: Upload Benchmark Results
@@ -50,21 +47,7 @@ jobs:
       with:
         name: benchmark-results
         path: |
-          StorageSharp.Tests/Benchmarks/BenchmarkResults/*.csv
-          StorageSharp.Tests/Benchmarks/BenchmarkResults/*.txt
-          StorageSharp.Tests/Benchmarks/BenchmarkResults/*.json
-      continue-on-error: true
-          
-    - name: Upload Benchmark Charts
-      uses: actions/upload-artifact@v4
-      with:
-        name: benchmark-charts
-        path: StorageSharp.Tests/Benchmarks/BenchmarkResults/*.png
-      continue-on-error: true
-        
-    - name: Upload HTML Report
-      uses: actions/upload-artifact@v4
-      with:
-        name: benchmark-html-report
-        path: StorageSharp.Tests/Benchmarks/BenchmarkResults/*.html
+          StorageSharp.Tests/Benchmarks/BenchmarkResults/results/*.csv
+          StorageSharp.Tests/Benchmarks/BenchmarkResults/results/*.md
+          StorageSharp.Tests/Benchmarks/BenchmarkResults/results/*.html
       continue-on-error: true 
