@@ -108,6 +108,20 @@ cd StorageSharp.Samples
 dotnet run
 ```
 
+### Running Benchmarks
+
+```bash
+# Start Mock Server (for API storage benchmarks)
+cd StorageSharp.Tests/MockServer
+python mock_storage_server.py
+
+# In another terminal, run benchmarks
+cd StorageSharp.Tests/Benchmarks
+dotnet run --configuration Release
+```
+
+**Note**: Benchmarks are heavy operations and are configured to run manually only in CI/CD. The benchmark workflow can be triggered manually from the GitHub Actions tab.
+
 ## Project Structure
 
 ```

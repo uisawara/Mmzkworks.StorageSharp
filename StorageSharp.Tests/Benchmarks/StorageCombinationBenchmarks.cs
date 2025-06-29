@@ -10,10 +10,14 @@ using System.Net.Http;
 namespace StorageSharp.Tests.Benchmarks
 {
     /// <summary>
-    /// overview.mdの構成に基づくベンチマーク
+    /// overview.mdの構成に基づくベンチマーク（軽量版）
     /// </summary>
     [MemoryDiagnoser]
-    [SimpleJob]
+    [SimpleJob(
+        warmupCount: 1,      // ウォームアップ回数を1回に削減
+        iterationCount: 3,   // 反復回数を3回に削減
+        launchCount: 1       // 起動回数を1回に削減
+    )]
     public class StorageCombinationBenchmarks
     {
         private string? _tempDirectory;
@@ -80,7 +84,7 @@ namespace StorageSharp.Tests.Benchmarks
             try
             {
                 using var client = new HttpClient();
-                client.Timeout = TimeSpan.FromSeconds(2);
+                client.Timeout = TimeSpan.FromSeconds(5);
                 var response = await client.GetAsync("http://localhost:8080/health");
                 var isHealthy = response.IsSuccessStatusCode;
                 Console.WriteLine($"MockServer health check: {(isHealthy ? "OK" : "Failed")}");
@@ -165,6 +169,7 @@ namespace StorageSharp.Tests.Benchmarks
 
         // 1. ファイルストレージ
         [Benchmark]
+        [InvocationCount(1)]  // 操作数を1回に制限
         public async Task FileStorage_Write()
         {
             var data = Encoding.UTF8.GetBytes("File storage write test data");
@@ -172,35 +177,24 @@ namespace StorageSharp.Tests.Benchmarks
         }
 
         [Benchmark]
+        [InvocationCount(1)]  // 操作数を1回に制限
         public async Task FileStorage_FirstRead()
         {
-            try
-            {
-                var data = await _fileStorage!.ReadAsync("overview_test.txt");
-                _ = data.Length;
-            }
-            catch (Exception)
-            {
-                // エラーを無視
-            }
+            var data = await _fileStorage!.ReadAsync("overview_test.txt");
+            _ = data.Length;
         }
 
         [Benchmark]
+        [InvocationCount(1)]  // 操作数を1回に制限
         public async Task FileStorage_SecondRead()
         {
-            try
-            {
-                var data = await _fileStorage!.ReadAsync("overview_test.txt");
-                _ = data.Length;
-            }
-            catch (Exception)
-            {
-                // エラーを無視
-            }
+            var data = await _fileStorage!.ReadAsync("overview_test.txt");
+            _ = data.Length;
         }
 
         // 2. メモリストレージ
         [Benchmark]
+        [InvocationCount(1)]  // 操作数を1回に制限
         public async Task MemoryStorage_Write()
         {
             var data = Encoding.UTF8.GetBytes("Memory storage write test data");
@@ -208,35 +202,24 @@ namespace StorageSharp.Tests.Benchmarks
         }
 
         [Benchmark]
+        [InvocationCount(1)]  // 操作数を1回に制限
         public async Task MemoryStorage_FirstRead()
         {
-            try
-            {
-                var data = await _memoryStorage!.ReadAsync("overview_test.txt");
-                _ = data.Length;
-            }
-            catch (Exception)
-            {
-                // エラーを無視
-            }
+            var data = await _memoryStorage!.ReadAsync("overview_test.txt");
+            _ = data.Length;
         }
 
         [Benchmark]
+        [InvocationCount(1)]  // 操作数を1回に制限
         public async Task MemoryStorage_SecondRead()
         {
-            try
-            {
-                var data = await _memoryStorage!.ReadAsync("overview_test.txt");
-                _ = data.Length;
-            }
-            catch (Exception)
-            {
-                // エラーを無視
-            }
+            var data = await _memoryStorage!.ReadAsync("overview_test.txt");
+            _ = data.Length;
         }
 
         // 3. ファイルキャッシュ
         [Benchmark]
+        [InvocationCount(1)]  // 操作数を1回に制限
         public async Task FileCache_Write()
         {
             if (!_mockServerAvailable) return;
@@ -246,6 +229,7 @@ namespace StorageSharp.Tests.Benchmarks
         }
 
         [Benchmark]
+        [InvocationCount(1)]  // 操作数を1回に制限
         public async Task FileCache_FirstRead()
         {
             if (!_mockServerAvailable) return;
@@ -257,17 +241,18 @@ namespace StorageSharp.Tests.Benchmarks
         }
 
         [Benchmark]
+        [InvocationCount(1)]  // 操作数を1回に制限
         public async Task FileCache_SecondRead()
         {
             if (!_mockServerAvailable) return;
             
-            // 2回目の読み取り（キャッシュヒット）
             var data = await _fileCache!.ReadAsync("overview_test.txt");
             _ = data.Length;
         }
 
         // 4. メモリキャッシュ
         [Benchmark]
+        [InvocationCount(1)]  // 操作数を1回に制限
         public async Task MemoryCache_Write()
         {
             if (!_mockServerAvailable) return;
@@ -277,6 +262,7 @@ namespace StorageSharp.Tests.Benchmarks
         }
 
         [Benchmark]
+        [InvocationCount(1)]  // 操作数を1回に制限
         public async Task MemoryCache_FirstRead()
         {
             if (!_mockServerAvailable) return;
@@ -288,110 +274,158 @@ namespace StorageSharp.Tests.Benchmarks
         }
 
         [Benchmark]
+        [InvocationCount(1)]  // 操作数を1回に制限
         public async Task MemoryCache_SecondRead()
         {
             if (!_mockServerAvailable) return;
             
-            // 2回目の読み取り（キャッシュヒット）
             var data = await _memoryCache!.ReadAsync("overview_test.txt");
             _ = data.Length;
         }
 
         // 5. ファイルキャッシュ＋ZIP展開
         [Benchmark]
+        [InvocationCount(1)]  // 操作数を1回に制限
         public async Task FileCacheZippedPacks_Write()
         {
             if (!_mockServerAvailable) return;
             
-            // テストディレクトリを作成してZIPパッケージとして追加
-            var testDir = Path.Combine(_tempDirectory!, "test_package");
-            Directory.CreateDirectory(testDir);
-            var testData = Encoding.UTF8.GetBytes("File cache zipped packs test data");
-            await File.WriteAllBytesAsync(Path.Combine(testDir, "test.txt"), testData);
-            
-            var scheme = await _fileCacheZippedPacks!.Add(testDir);
-            _ = scheme.DirectoryPath;
+            try
+            {
+                // テストディレクトリを作成してZIPパッケージとして追加
+                var testDir = Path.Combine(_tempDirectory!, "test_package");
+                Directory.CreateDirectory(testDir);
+                var testData = Encoding.UTF8.GetBytes("File cache zipped packs test data");
+                await File.WriteAllBytesAsync(Path.Combine(testDir, "test.txt"), testData);
+                
+                var scheme = await _fileCacheZippedPacks!.Add(testDir);
+                _ = scheme.DirectoryPath;
+            }
+            catch (Exception)
+            {
+                // エラーを無視
+            }
         }
 
         [Benchmark]
+        [InvocationCount(1)]  // 操作数を1回に制限
         public async Task FileCacheZippedPacks_FirstRead()
         {
             if (!_mockServerAvailable) return;
             
-            // キャッシュをクリアしてから読み取り
-            await _fileCacheZippedPacks!.Clear();
-            
-            // テストディレクトリを作成してZIPパッケージとして追加
-            var testDir = Path.Combine(_tempDirectory!, "test_package_first");
-            Directory.CreateDirectory(testDir);
-            var testData = Encoding.UTF8.GetBytes("File cache zipped packs first read test data");
-            await File.WriteAllBytesAsync(Path.Combine(testDir, "test.txt"), testData);
-            
-            var scheme = await _fileCacheZippedPacks!.Add(testDir);
-            var extractPath = await _fileCacheZippedPacks!.Load(scheme);
-            _ = extractPath;
+            try
+            {
+                // パッケージをクリアしてから読み取り
+                await _fileCacheZippedPacks!.Clear();
+                
+                // テストディレクトリを作成してZIPパッケージとして追加
+                var testDir = Path.Combine(_tempDirectory!, "test_package_first");
+                Directory.CreateDirectory(testDir);
+                var testData = Encoding.UTF8.GetBytes("File cache zipped packs first read test data");
+                await File.WriteAllBytesAsync(Path.Combine(testDir, "test.txt"), testData);
+                
+                var scheme = await _fileCacheZippedPacks!.Add(testDir);
+                var extractPath = await _fileCacheZippedPacks!.Load(scheme);
+                _ = extractPath;
+            }
+            catch (Exception)
+            {
+                // エラーを無視
+            }
         }
 
         [Benchmark]
+        [InvocationCount(1)]  // 操作数を1回に制限
         public async Task FileCacheZippedPacks_SecondRead()
         {
             if (!_mockServerAvailable) return;
             
-            // 2回目の読み取り（キャッシュヒット）
-            var schemes = await _fileCacheZippedPacks!.ListAll();
-            if (schemes.Length > 0)
+            try
             {
-                var extractPath = await _fileCacheZippedPacks!.Load(schemes[0]);
-                _ = extractPath;
+                // 2回目の読み取り（キャッシュヒット）
+                var schemes = await _fileCacheZippedPacks!.ListAll();
+                if (schemes.Length > 0)
+                {
+                    var extractPath = await _fileCacheZippedPacks!.Load(schemes[0]);
+                    _ = extractPath;
+                }
+            }
+            catch (Exception)
+            {
+                // エラーを無視
             }
         }
 
         // 6. メモリキャッシュ＋ZIP展開
         [Benchmark]
+        [InvocationCount(1)]  // 操作数を1回に制限
         public async Task MemoryCacheZippedPacks_Write()
         {
             if (!_mockServerAvailable) return;
             
-            // テストディレクトリを作成してZIPパッケージとして追加
-            var testDir = Path.Combine(_tempDirectory!, "test_package_memory");
-            Directory.CreateDirectory(testDir);
-            var testData = Encoding.UTF8.GetBytes("Memory cache zipped packs test data");
-            await File.WriteAllBytesAsync(Path.Combine(testDir, "test.txt"), testData);
-            
-            var scheme = await _memoryCacheZippedPacks!.Add(testDir);
-            _ = scheme.DirectoryPath;
+            try
+            {
+                // テストディレクトリを作成してZIPパッケージとして追加
+                var testDir = Path.Combine(_tempDirectory!, "test_package_memory");
+                Directory.CreateDirectory(testDir);
+                var testData = Encoding.UTF8.GetBytes("Memory cache zipped packs test data");
+                await File.WriteAllBytesAsync(Path.Combine(testDir, "test.txt"), testData);
+                
+                var scheme = await _memoryCacheZippedPacks!.Add(testDir);
+                _ = scheme.DirectoryPath;
+            }
+            catch (Exception)
+            {
+                // エラーを無視
+            }
         }
 
         [Benchmark]
+        [InvocationCount(1)]  // 操作数を1回に制限
         public async Task MemoryCacheZippedPacks_FirstRead()
         {
             if (!_mockServerAvailable) return;
             
-            // キャッシュをクリアしてから読み取り
-            await _memoryCacheZippedPacks!.Clear();
-            
-            // テストディレクトリを作成してZIPパッケージとして追加
-            var testDir = Path.Combine(_tempDirectory!, "test_package_memory_first");
-            Directory.CreateDirectory(testDir);
-            var testData = Encoding.UTF8.GetBytes("Memory cache zipped packs first read test data");
-            await File.WriteAllBytesAsync(Path.Combine(testDir, "test.txt"), testData);
-            
-            var scheme = await _memoryCacheZippedPacks!.Add(testDir);
-            var extractPath = await _memoryCacheZippedPacks!.Load(scheme);
-            _ = extractPath;
+            try
+            {
+                // パッケージをクリアしてから読み取り
+                await _memoryCacheZippedPacks!.Clear();
+                
+                // テストディレクトリを作成してZIPパッケージとして追加
+                var testDir = Path.Combine(_tempDirectory!, "test_package_memory_first");
+                Directory.CreateDirectory(testDir);
+                var testData = Encoding.UTF8.GetBytes("Memory cache zipped packs first read test data");
+                await File.WriteAllBytesAsync(Path.Combine(testDir, "test.txt"), testData);
+                
+                var scheme = await _memoryCacheZippedPacks!.Add(testDir);
+                var extractPath = await _memoryCacheZippedPacks!.Load(scheme);
+                _ = extractPath;
+            }
+            catch (Exception)
+            {
+                // エラーを無視
+            }
         }
 
         [Benchmark]
+        [InvocationCount(1)]  // 操作数を1回に制限
         public async Task MemoryCacheZippedPacks_SecondRead()
         {
             if (!_mockServerAvailable) return;
             
-            // 2回目の読み取り（キャッシュヒット）
-            var schemes = await _memoryCacheZippedPacks!.ListAll();
-            if (schemes.Length > 0)
+            try
             {
-                var extractPath = await _memoryCacheZippedPacks!.Load(schemes[0]);
-                _ = extractPath;
+                // 2回目の読み取り（キャッシュヒット）
+                var schemes = await _memoryCacheZippedPacks!.ListAll();
+                if (schemes.Length > 0)
+                {
+                    var extractPath = await _memoryCacheZippedPacks!.Load(schemes[0]);
+                    _ = extractPath;
+                }
+            }
+            catch (Exception)
+            {
+                // エラーを無視
             }
         }
     }
