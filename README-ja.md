@@ -6,6 +6,10 @@ StorageSharpは、単独バイナリファイルとフォルダファイル集�
 [![CI/CD Pipeline](https://github.com/uisawara/storageSharp/actions/workflows/ci.yml/badge.svg)](https://github.com/uisawara/storageSharp/actions/workflows/ci.yml)
 [![NuGet](https://img.shields.io/nuget/v/Mmzkworks.StorageSharp.svg)](https://www.nuget.org/packages/Mmzkworks.StorageSharp/)
 
+## 読み物
+
+- [overview](./Documents/overview.md)
+
 ## 機能
 
 ### ストレージ機能 (IStorage)
