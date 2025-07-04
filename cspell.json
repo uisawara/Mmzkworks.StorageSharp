@@ -1,0 +1,67 @@
+{
+  "version": "0.2",
+  "language": "en",
+  "words": [
+    "StorageSharp",
+    "Mmzkworks",
+    "dotnet",
+    "nuget",
+    "csproj",
+    "nupkg",
+    "api",
+    "github",
+    "workflow",
+    "workflows",
+    "codeowners",
+    "verbosity",
+    "nupkgs",
+    "api",
+    "refs",
+    "sed",
+    "ls",
+    "la",
+    "skip",
+    "duplicate",
+    "Newtonsoft",
+    "Xunit",
+    "xunit",
+    "contentfiles",
+    "buildtransitive",
+    "netstandard",
+    "snupkg"
+  ],
+  "ignoreWords": [],
+  "ignorePaths": [
+    "**/node_modules/**",
+    "**/bin/**",
+    "**/obj/**",
+    "**/.git/**",
+    "**/packages/**",
+    "**/*.dll",
+    "**/*.exe",
+    "**/*.pdb",
+    "**/*.nupkg"
+  ],
+  "patterns": [
+    {
+      "name": "C# code",
+      "pattern": "\\.(cs|csproj)$",
+      "description": "C# source files and project files"
+    },
+    {
+      "name": "Markdown files",
+      "pattern": "\\.md$",
+      "description": "Markdown documentation files"
+    },
+    {
+      "name": "YAML files",
+      "pattern": "\\.(yml|yaml)$",
+      "description": "YAML configuration files"
+    },
+    {
+      "name": "JSON files",
+      "pattern": "\\.json$",
+      "description": "JSON configuration files"
+    }
+  ]
+} 
