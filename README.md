@@ -5,6 +5,10 @@ StorageSharp is a flexible storage system for handling single binary files and f
 [![CI/CD Pipeline](https://github.com/uisawara/storageSharp/actions/workflows/ci.yml/badge.svg)](https://github.com/uisawara/storageSharp/actions/workflows/ci.yml)
 [![NuGet](https://img.shields.io/nuget/v/Mmzkworks.StorageSharp.svg)](https://www.nuget.org/packages/Mmzkworks.StorageSharp/)
 
+## Read first
+
+- [overview](./Documents/overview.md)
+
 ## Features
 
 ### Storage Features (IStorage)
@@ -183,10 +187,6 @@ await packages.Unload(archiveScheme);
 // Delete archive
 await packages.Delete(archiveScheme);
 ```
-
-### Additional documents
-
-- [overview](./Documents/overview.md)
 
 ## Notes
 
