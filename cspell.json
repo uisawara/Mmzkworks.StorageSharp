@@ -21,7 +21,14 @@
     "ls",
     "la",
     "skip",
-    "duplicate"
+    "duplicate",
+    "Newtonsoft",
+    "Xunit",
+    "xunit",
+    "contentfiles",
+    "buildtransitive",
+    "netstandard",
+    "snupkg"
   ],
   "ignoreWords": [],
   "ignorePaths": [
