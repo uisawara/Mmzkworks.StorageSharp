@@ -103,35 +103,36 @@ public class FileStorageTests : IDisposable
     {
         // Given
         var storage = new FileStorage(_testDirectory);
-        var testData = "test stream data";
+        var testData = Encoding.UTF8.GetBytes("test stream data");
         var key = "stream.txt";
-        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(testData));
-        using var reader = new StreamReader(stream);
+        using var stream = new MemoryStream(testData);
 
         // When
-        await storage.WriteAsync(key, reader);
+        await storage.WriteAsync(key, stream);
 
         // Then
         var filePath = Path.Combine(_testDirectory, key);
         Assert.True(File.Exists(filePath));
-        var content = await File.ReadAllTextAsync(filePath);
-        Assert.Equal(testData, content);
+        var fileData = await File.ReadAllBytesAsync(filePath);
+        Assert.Equal(testData, fileData);
     }
 
     [Fact]
-    public async Task ReadToStreamAsync_ShouldReturnStreamReader()
+    public async Task ReadToStreamAsync_ShouldReturnStream()
     {
         // Given
         var storage = new FileStorage(_testDirectory);
-        var testData = "test stream data";
+        var testData = Encoding.UTF8.GetBytes("test stream data");
         var key = "stream.txt";
-        await storage.WriteAsync(key, Encoding.UTF8.GetBytes(testData));
+        await storage.WriteAsync(key, testData);
 
         // When
-        using var reader = await storage.ReadToStreamAsync(key);
-        var content = await reader.ReadToEndAsync();
+        using var stream = await storage.ReadToStreamAsync(key);
+        using var memoryStream = new MemoryStream();
+        await stream.CopyToAsync(memoryStream);
+        var readData = memoryStream.ToArray();
 
         // Then
-        Assert.Equal(testData, content);
+        Assert.Equal(testData, readData);
     }
 }

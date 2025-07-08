@@ -115,16 +115,18 @@ public class CachedStorageTests
         var cache = new MemoryStorage();
         var origin = new MemoryStorage();
         var cachedStorage = new CachedStorage(cache, origin);
-        var testData = "test stream data";
+        var testData = Encoding.UTF8.GetBytes("test stream data");
         var key = "stream.txt";
-        await cachedStorage.WriteAsync(key, Encoding.UTF8.GetBytes(testData));
+        await cachedStorage.WriteAsync(key, testData);
 
         // When
-        using var reader = await cachedStorage.ReadToStreamAsync(key);
-        var content = await reader.ReadToEndAsync();
+        using var stream = await cachedStorage.ReadToStreamAsync(key);
+        using var memoryStream = new MemoryStream();
+        await stream.CopyToAsync(memoryStream);
+        var readData = memoryStream.ToArray();
 
         // Then
-        Assert.Equal(testData, content);
+        Assert.Equal(testData, readData);
         Assert.Equal(1, cachedStorage.CacheHitCount);
     }
 
@@ -135,23 +137,19 @@ public class CachedStorageTests
         var cache = new MemoryStorage();
         var origin = new MemoryStorage();
         var cachedStorage = new CachedStorage(cache, origin);
-        var testData = "test stream data";
+        var testData = Encoding.UTF8.GetBytes("test stream data");
         var key = "stream.txt";
-        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(testData));
-        using var reader = new StreamReader(stream);
+        using var stream = new MemoryStream(testData);
 
         // When
-        await cachedStorage.WriteAsync(key, reader);
+        await cachedStorage.WriteAsync(key, stream);
 
         // Then
         var cacheData = await cache.ReadAsync(key);
         var originData = await origin.ReadAsync(key);
 
-        var cacheContent = Encoding.UTF8.GetString(cacheData);
-        var originContent = Encoding.UTF8.GetString(originData);
-
-        Assert.Equal(testData, cacheContent);
-        Assert.Equal(testData, originContent);
+        Assert.Equal(testData, cacheData);
+        Assert.Equal(testData, originData);
     }
 
     [Fact]

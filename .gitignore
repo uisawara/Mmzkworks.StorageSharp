@@ -7,3 +7,4 @@ StorageSharp.Tests/obj
 .idea
 .vs
 nupkgs
+*.user

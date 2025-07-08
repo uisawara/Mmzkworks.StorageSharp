@@ -63,7 +63,7 @@ namespace StorageSharp.Storages
             }
         }
 
-        public Task<StreamReader> ReadToStreamAsync(string key, CancellationToken cancellationToken = default)
+        public Task<Stream> ReadToStreamAsync(string key, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(key))
                 throw new ArgumentException("Key cannot be null or empty", nameof(key));
@@ -75,12 +75,11 @@ namespace StorageSharp.Storages
                 throw new FileNotFoundException($"File not found: {key}");
 
             var stream = File.OpenRead(filePath);
-            var reader = new StreamReader(stream);
 
-            return Task.FromResult(reader);
+            return Task.FromResult<Stream>(stream);
         }
 
-        public async Task WriteAsync(string key, StreamReader stream, CancellationToken cancellationToken = default)
+        public async Task WriteAsync(string key, Stream stream, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(key))
                 throw new ArgumentException("Key cannot be null or empty", nameof(key));
@@ -96,7 +95,7 @@ namespace StorageSharp.Storages
             if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory)) Directory.CreateDirectory(directory);
 
             using var fileStream = File.Create(filePath);
-            await stream.BaseStream.CopyToAsync(fileStream, cancellationToken);
+            await stream.CopyToAsync(fileStream, cancellationToken);
         }
 
         private string GetPathFromKey(string key)

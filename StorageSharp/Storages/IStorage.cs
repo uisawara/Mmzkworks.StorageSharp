@@ -9,7 +9,7 @@ namespace StorageSharp.Storages
         Task<string[]> ListAll(CancellationToken cancellationToken = default);
         Task<byte[]> ReadAsync(string key, CancellationToken cancellationToken = default);
         Task WriteAsync(string key, byte[] data, CancellationToken cancellationToken = default);
-        Task<StreamReader> ReadToStreamAsync(string key, CancellationToken cancellationToken = default);
-        Task WriteAsync(string key, StreamReader stream, CancellationToken cancellationToken = default);
+        Task<Stream> ReadToStreamAsync(string key, CancellationToken cancellationToken = default);
+        Task WriteAsync(string key, Stream stream, CancellationToken cancellationToken = default);
     }
 }

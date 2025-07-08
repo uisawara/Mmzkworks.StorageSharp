@@ -191,19 +191,20 @@ public class StorageIntegrationTests : IDisposable
     public async Task StreamOperations_Integration()
     {
         var storage = new FileStorage(_testDirectory);
-        var testData = "stream integration test data";
+        var testData = Encoding.UTF8.GetBytes("stream integration test data");
         var key = "stream_integration.txt";
 
-        using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(testData)))
-        using (var reader = new StreamReader(stream))
+        using (var stream = new MemoryStream(testData))
         {
-            await storage.WriteAsync(key, reader);
+            await storage.WriteAsync(key, stream);
         }
 
-        using (var reader = await storage.ReadToStreamAsync(key))
+        using (var stream = await storage.ReadToStreamAsync(key))
+        using (var memoryStream = new MemoryStream())
         {
-            var content = await reader.ReadToEndAsync();
-            Assert.Equal(testData, content);
+            await stream.CopyToAsync(memoryStream);
+            var readData = memoryStream.ToArray();
+            Assert.Equal(testData, readData);
         }
     }
 

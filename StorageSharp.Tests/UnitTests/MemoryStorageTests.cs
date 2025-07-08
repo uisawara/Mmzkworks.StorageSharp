@@ -88,35 +88,35 @@ public class MemoryStorageTests
     {
         // Given
         var storage = new MemoryStorage();
-        var testData = "test stream data";
+        var testData = Encoding.UTF8.GetBytes("test stream data");
         var key = "stream.txt";
-        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(testData));
-        using var reader = new StreamReader(stream);
+        using var stream = new MemoryStream(testData);
 
         // When
-        await storage.WriteAsync(key, reader);
+        await storage.WriteAsync(key, stream);
 
         // Then
         var storedData = await storage.ReadAsync(key);
-        var content = Encoding.UTF8.GetString(storedData);
-        Assert.Equal(testData, content);
+        Assert.Equal(testData, storedData);
     }
 
     [Fact]
-    public async Task ReadToStreamAsync_ShouldReturnStreamReader()
+    public async Task ReadToStreamAsync_ShouldReturnStream()
     {
         // Given
         var storage = new MemoryStorage();
-        var testData = "test stream data";
+        var testData = Encoding.UTF8.GetBytes("test stream data");
         var key = "stream.txt";
-        await storage.WriteAsync(key, Encoding.UTF8.GetBytes(testData));
+        await storage.WriteAsync(key, testData);
 
         // When
-        using var reader = await storage.ReadToStreamAsync(key);
-        var content = await reader.ReadToEndAsync();
+        using var stream = await storage.ReadToStreamAsync(key);
+        using var memoryStream = new MemoryStream();
+        await stream.CopyToAsync(memoryStream);
+        var readData = memoryStream.ToArray();
 
         // Then
-        Assert.Equal(testData, content);
+        Assert.Equal(testData, readData);
     }
 
     [Fact]
