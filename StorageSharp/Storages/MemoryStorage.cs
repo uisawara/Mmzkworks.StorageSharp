@@ -48,7 +48,7 @@ namespace StorageSharp.Storages
             return Task.CompletedTask;
         }
 
-        public Task<StreamReader> ReadToStreamAsync(string key, CancellationToken cancellationToken = default)
+        public Task<Stream> ReadToStreamAsync(string key, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(key))
                 throw new ArgumentException("Key cannot be null or empty", nameof(key));
@@ -59,12 +59,11 @@ namespace StorageSharp.Storages
                 throw new KeyNotFoundException($"Key not found: {key}");
 
             var stream = new MemoryStream(data);
-            var reader = new StreamReader(stream);
 
-            return Task.FromResult(reader);
+            return Task.FromResult<Stream>(stream);
         }
 
-        public async Task WriteAsync(string key, StreamReader stream, CancellationToken cancellationToken = default)
+        public async Task WriteAsync(string key, Stream stream, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(key))
                 throw new ArgumentException("Key cannot be null or empty", nameof(key));
@@ -75,7 +74,7 @@ namespace StorageSharp.Storages
             cancellationToken.ThrowIfCancellationRequested();
 
             using var memoryStream = new MemoryStream();
-            await stream.BaseStream.CopyToAsync(memoryStream, cancellationToken);
+            await stream.CopyToAsync(memoryStream, cancellationToken);
 
             var data = memoryStream.ToArray();
             _storage.AddOrUpdate(key, data, (k, v) => data);
