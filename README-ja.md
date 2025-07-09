@@ -17,6 +17,7 @@ StorageSharpは、単独バイナリファイルとフォルダファイル集�
 - **FileStorage**: ファイルシステムベースのストレージ
 - **MemoryStorage**: メモリベースのストレージ
 - **CachedStorage**: キャッシュ機能付きストレージ
+- **StorageRouter**: キーのパターンに基づいて異なるストレージに操作をルーティング
 
 ### アーカイブ機能 (IPacks)
 
@@ -122,7 +123,8 @@ storageSharp/
 │   │   ├── IStorage.cs              # ストレージインターフェース
 │   │   ├── FileStorage.cs           # ファイルストレージ実装
 │   │   ├── MemoryStorage.cs         # メモリストレージ実装
-│   │   └── CachedStorage.cs         # キャッシュ付きストレージ実装
+│   │   ├── CachedStorage.cs         # キャッシュ付きストレージ実装
+│   │   └── StorageRouter.cs         # ストレージルーティング実装
 │   ├── Packs/
 │   │   ├── IPacks.cs                # アーカイブインターフェース
 │   │   └── ZippedPacks.cs           # ZIPパッケージ実装
@@ -187,6 +189,30 @@ await packages.Unload(archiveScheme);
 
 // アーカイブを削除
 await packages.Delete(archiveScheme);
+```
+
+### ストレージルーターの使用
+
+```csharp
+var storageRouter = new StorageRouter(new[]
+{
+    // HTTP/HTTPSキーを特定のストレージにルーティング
+    new StorageRouter.Branch(
+        key => key.StartsWith("http://") || key.StartsWith("https://"),
+        new FileStorage("HttpStorage")),
+    
+    // file://キーをプレフィックス除去してルーティング
+    new StorageRouter.Branch(
+        key => key.StartsWith("file://"),
+        key => key.Substring("file://".Length), // キーフォーマッター
+        new FileStorage("LocalStorage"))
+},
+new FileStorage("DefaultStorage")); // デフォルトストレージ
+
+// キーに基づいて適切なストレージに書き込み
+await storageRouter.WriteAsync("http://example.com/data.txt", data);
+await storageRouter.WriteAsync("file://local/data.txt", data); // LocalStorageに"local/data.txt"として書き込み
+await storageRouter.WriteAsync("regular-file.txt", data); // DefaultStorageに書き込み
 ```
 
 ### 追加のドキュメント
