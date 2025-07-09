@@ -16,6 +16,7 @@ StorageSharp is a flexible storage system for handling single binary files and f
 - **FileStorage**: File system-based storage
 - **MemoryStorage**: Memory-based storage
 - **CachedStorage**: Storage with caching functionality
+- **StorageRouter**: Routes operations to different storages based on key patterns
 
 ### Archive Features (IPacks)
 
@@ -121,7 +122,8 @@ storageSharp/
 │   │   ├── IStorage.cs              # Storage interface
 │   │   ├── FileStorage.cs           # File storage implementation
 │   │   ├── MemoryStorage.cs         # Memory storage implementation
-│   │   └── CachedStorage.cs         # Cached storage implementation
+│   │   ├── CachedStorage.cs         # Cached storage implementation
+│   │   └── StorageRouter.cs         # Storage routing implementation
 │   ├── Packs/
 │   │   ├── IPacks.cs                # Archive interface
 │   │   └── ZippedPacks.cs           # ZIP package implementation
@@ -186,6 +188,30 @@ await packages.Unload(archiveScheme);
 
 // Delete archive
 await packages.Delete(archiveScheme);
+```
+
+### Using Storage Router
+
+```csharp
+var storageRouter = new StorageRouter(new[]
+{
+    // Route HTTP/HTTPS keys to specific storage
+    new StorageRouter.Branch(
+        key => key.StartsWith("http://") || key.StartsWith("https://"),
+        new FileStorage("HttpStorage")),
+    
+    // Route file:// keys with prefix removal
+    new StorageRouter.Branch(
+        key => key.StartsWith("file://"),
+        key => key.Substring("file://".Length), // Key formatter
+        new FileStorage("LocalStorage"))
+},
+new FileStorage("DefaultStorage")); // Default storage
+
+// Write to appropriate storage based on key
+await storageRouter.WriteAsync("http://example.com/data.txt", data);
+await storageRouter.WriteAsync("file://local/data.txt", data); // Routed to LocalStorage with key "local/data.txt"
+await storageRouter.WriteAsync("regular-file.txt", data); // Routed to DefaultStorage
 ```
 
 ## Notes
