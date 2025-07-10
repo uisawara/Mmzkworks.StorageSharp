@@ -131,6 +131,39 @@ public class PerformanceTests : IDisposable
     }
 
     [Fact]
+    public async Task EncryptedStorage_PerformanceTest()
+    {
+        var baseStorage = new MemoryStorage();
+        var storage = new EncryptedStorage(baseStorage, "performance-test-password");
+        var testData = Encoding.UTF8.GetBytes("encrypted performance test data");
+        var stopwatch = new Stopwatch();
+
+        stopwatch.Start();
+        for (var i = 0; i < 200; i++)
+        {
+            var key = $"encrypted_perf_test_{i}.txt";
+            await storage.WriteAsync(key, testData);
+        }
+
+        stopwatch.Stop();
+
+        var writeTime = stopwatch.ElapsedMilliseconds;
+        Assert.True(writeTime < 5000, $"Encrypted write operation took too long: {writeTime}ms");
+
+        stopwatch.Restart();
+        for (var i = 0; i < 200; i++)
+        {
+            var key = $"encrypted_perf_test_{i}.txt";
+            await storage.ReadAsync(key);
+        }
+
+        stopwatch.Stop();
+
+        var readTime = stopwatch.ElapsedMilliseconds;
+        Assert.True(readTime < 5000, $"Encrypted read operation took too long: {readTime}ms");
+    }
+
+    [Fact]
     public async Task ZippedPackages_PerformanceTest()
     {
         var storage = new MemoryStorage();
@@ -230,5 +263,160 @@ public class PerformanceTests : IDisposable
 
         var concurrentReadTime = stopwatch.ElapsedMilliseconds;
         Assert.True(concurrentReadTime < 3000, $"Concurrent read took too long: {concurrentReadTime}ms");
+    }
+
+    [Fact]
+    public async Task EncryptedStorage_LargeData_PerformanceTest()
+    {
+        var baseStorage = new MemoryStorage();
+        var storage = new EncryptedStorage(baseStorage, "large-data-performance-password");
+        var largeData = new byte[1024 * 1024]; // 1MB
+        new Random().NextBytes(largeData);
+        var stopwatch = new Stopwatch();
+
+        stopwatch.Start();
+        for (var i = 0; i < 5; i++)
+        {
+            var key = $"encrypted_large_test_{i}.bin";
+            await storage.WriteAsync(key, largeData);
+        }
+
+        stopwatch.Stop();
+
+        var writeTime = stopwatch.ElapsedMilliseconds;
+        Assert.True(writeTime < 15000, $"Encrypted large data write took too long: {writeTime}ms");
+
+        stopwatch.Restart();
+        for (var i = 0; i < 5; i++)
+        {
+            var key = $"encrypted_large_test_{i}.bin";
+            var readData = await storage.ReadAsync(key);
+            Assert.Equal(largeData.Length, readData.Length);
+        }
+
+        stopwatch.Stop();
+
+        var readTime = stopwatch.ElapsedMilliseconds;
+        Assert.True(readTime < 15000, $"Encrypted large data read took too long: {readTime}ms");
+    }
+
+    [Fact]
+    public async Task EncryptedStorage_ConcurrentOperations_PerformanceTest()
+    {
+        var baseStorage = new MemoryStorage();
+        var storage = new EncryptedStorage(baseStorage, "concurrent-performance-password");
+        var testData = Encoding.UTF8.GetBytes("concurrent encrypted test data");
+        var stopwatch = new Stopwatch();
+
+        stopwatch.Start();
+        var tasks = new Task[50]; // Reduced from 100 due to encryption overhead
+        for (var i = 0; i < 50; i++)
+        {
+            var key = $"encrypted_concurrent_test_{i}.txt";
+            tasks[i] = storage.WriteAsync(key, testData);
+        }
+
+        await Task.WhenAll(tasks);
+        stopwatch.Stop();
+
+        var concurrentWriteTime = stopwatch.ElapsedMilliseconds;
+        Assert.True(concurrentWriteTime < 10000, $"Encrypted concurrent write took too long: {concurrentWriteTime}ms");
+
+        stopwatch.Restart();
+        var readTasks = new Task[50];
+        for (var i = 0; i < 50; i++)
+        {
+            var key = $"encrypted_concurrent_test_{i}.txt";
+            readTasks[i] = storage.ReadAsync(key);
+        }
+
+        await Task.WhenAll(readTasks);
+        stopwatch.Stop();
+
+        var concurrentReadTime = stopwatch.ElapsedMilliseconds;
+        Assert.True(concurrentReadTime < 10000, $"Encrypted concurrent read took too long: {concurrentReadTime}ms");
+    }
+
+    [Fact]
+    public async Task EncryptedStorage_StreamOperations_PerformanceTest()
+    {
+        var baseStorage = new MemoryStorage();
+        var storage = new EncryptedStorage(baseStorage, "stream-performance-password");
+        var testData = new byte[1024 * 100]; // 100KB
+        new Random().NextBytes(testData);
+        var stopwatch = new Stopwatch();
+
+        stopwatch.Start();
+        for (var i = 0; i < 20; i++)
+        {
+            var key = $"encrypted_stream_perf_{i}.bin";
+            using var stream = new MemoryStream(testData);
+            await storage.WriteAsync(key, stream);
+        }
+
+        stopwatch.Stop();
+
+        var streamWriteTime = stopwatch.ElapsedMilliseconds;
+        Assert.True(streamWriteTime < 8000, $"Encrypted stream write took too long: {streamWriteTime}ms");
+
+        stopwatch.Restart();
+        for (var i = 0; i < 20; i++)
+        {
+            var key = $"encrypted_stream_perf_{i}.bin";
+            using var readStream = await storage.ReadToStreamAsync(key);
+            using var memoryStream = new MemoryStream();
+            await readStream.CopyToAsync(memoryStream);
+            var readData = memoryStream.ToArray();
+            Assert.Equal(testData.Length, readData.Length);
+        }
+
+        stopwatch.Stop();
+
+        var streamReadTime = stopwatch.ElapsedMilliseconds;
+        Assert.True(streamReadTime < 8000, $"Encrypted stream read took too long: {streamReadTime}ms");
+    }
+
+    [Fact]
+    public async Task EncryptedStorage_EncryptionOverhead_PerformanceTest()
+    {
+        var baseStorage = new MemoryStorage();
+        var plaintextStorage = new MemoryStorage();
+        var encryptedStorage = new EncryptedStorage(baseStorage, "overhead-test-password");
+        var testData = Encoding.UTF8.GetBytes("encryption overhead test data");
+        var iterations = 500;
+
+        var plaintextStopwatch = new Stopwatch();
+        var encryptedStopwatch = new Stopwatch();
+
+        // Measure plaintext operations
+        plaintextStopwatch.Start();
+        for (var i = 0; i < iterations; i++)
+        {
+            var key = $"plaintext_test_{i}.txt";
+            await plaintextStorage.WriteAsync(key, testData);
+            await plaintextStorage.ReadAsync(key);
+        }
+        plaintextStopwatch.Stop();
+
+        // Measure encrypted operations
+        encryptedStopwatch.Start();
+        for (var i = 0; i < iterations; i++)
+        {
+            var key = $"encrypted_test_{i}.txt";
+            await encryptedStorage.WriteAsync(key, testData);
+            await encryptedStorage.ReadAsync(key);
+        }
+        encryptedStopwatch.Stop();
+
+        var plaintextTime = plaintextStopwatch.ElapsedMilliseconds;
+        var encryptedTime = encryptedStopwatch.ElapsedMilliseconds;
+        
+        // Avoid division by zero for very fast operations
+        if (plaintextTime == 0) plaintextTime = 1;
+        
+        var overhead = (double)encryptedTime / plaintextTime;
+
+        // Encryption should not add more than 50x overhead for small operations
+        Assert.True(overhead < 50.0, $"Encryption overhead too high: {overhead:F2}x (plaintext: {plaintextTime}ms, encrypted: {encryptedTime}ms)");
     }
 }

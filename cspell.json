@@ -28,7 +28,15 @@
     "contentfiles",
     "buildtransitive",
     "netstandard",
-    "snupkg"
+    "snupkg",
+    "PKCS",
+    "encryptor",
+    "Encryptor",
+    "encryptor",
+    "PKCS",
+    "decryptor",
+    "Decryptor",
+    "decryptor"
   ],
   "ignoreWords": [],
   "ignorePaths": [
