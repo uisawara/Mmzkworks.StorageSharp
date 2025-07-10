@@ -16,6 +16,7 @@ StorageSharp is a flexible storage system for handling single binary files and f
 - **FileStorage**: File system-based storage
 - **MemoryStorage**: Memory-based storage
 - **CachedStorage**: Storage with caching functionality
+- **EncryptedStorage**: AES-256 encrypted storage that wraps any IStorage implementation
 - **StorageRouter**: Routes operations to different storages based on key patterns
 
 ### Archive Features (IPacks)
@@ -44,6 +45,26 @@ var storage = new CachedStorage(
     cache: new MemoryStorage(), // Cache storage
     origin: new FileStorage("OriginStorage") // Origin storage
 );
+```
+
+### Using Encrypted Storage
+
+```csharp
+// Encrypt data with a password
+var baseStorage = new FileStorage("EncryptedStorage");
+var encryptedStorage = new EncryptedStorage(baseStorage, "your-secure-password");
+
+// Write encrypted data
+await encryptedStorage.WriteAsync("secret.txt", data);
+
+// Read and decrypt data
+var decryptedData = await encryptedStorage.ReadAsync("secret.txt");
+
+// Advanced: Use custom encryption key and IV
+var key = new byte[32]; // 32-byte key for AES-256
+var iv = new byte[16];  // 16-byte IV
+// Initialize key and iv with secure random values...
+var customEncryptedStorage = new EncryptedStorage(baseStorage, key, iv);
 ```
 
 ### Using ZIP Packages
@@ -123,6 +144,7 @@ storageSharp/
 │   │   ├── FileStorage.cs           # File storage implementation
 │   │   ├── MemoryStorage.cs         # Memory storage implementation
 │   │   ├── CachedStorage.cs         # Cached storage implementation
+│   │   ├── EncryptedStorage.cs      # AES-256 encrypted storage implementation
 │   │   └── StorageRouter.cs         # Storage routing implementation
 │   ├── Packs/
 │   │   ├── IPacks.cs                # Archive interface
@@ -167,6 +189,34 @@ await cachedStorage.WriteAsync("cached-file.txt", data);
 
 // Reading data (cache hit/miss is automatically managed)
 var readData = await cachedStorage.ReadAsync("cached-file.txt");
+```
+
+### Using Encrypted Storage
+
+```csharp
+// Basic encrypted storage with password
+var baseStorage = new FileStorage("SecureStorage");
+var encryptedStorage = new EncryptedStorage(baseStorage, "MySecurePassword123!");
+
+// Writing encrypted data
+var sensitiveData = System.Text.Encoding.UTF8.GetBytes("This data will be encrypted");
+await encryptedStorage.WriteAsync("confidential.txt", sensitiveData);
+
+// Reading encrypted data (automatically decrypted)
+var decryptedData = await encryptedStorage.ReadAsync("confidential.txt");
+
+// Using encrypted storage with different backends
+var memoryBackend = new MemoryStorage();
+var encryptedMemory = new EncryptedStorage(memoryBackend, "MemoryPassword");
+
+var cachedBackend = new CachedStorage(new MemoryStorage(), new FileStorage("Cache"));
+var encryptedCached = new EncryptedStorage(cachedBackend, "CachedPassword");
+
+// Custom encryption settings
+var customKey = new byte[32]; // 32-byte key for AES-256
+var customIV = new byte[16];  // 16-byte IV for AES
+// Fill with cryptographically secure random values...
+var customEncrypted = new EncryptedStorage(baseStorage, customKey, customIV);
 ```
 
 ### Using ZIP Packages
@@ -219,6 +269,14 @@ await storageRouter.WriteAsync("regular-file.txt", data); // Routed to DefaultSt
 - Temporary files are automatically managed, but please consider appropriate cleanup when handling large amounts of data
 - Use the caching functionality with attention to memory usage
 - The ZIP package functionality uses the SharpZipLib library
+
+### Security Considerations for EncryptedStorage
+
+- **Password Management**: Encryption passwords/keys must be properly managed and secured
+- **Key Storage**: Never hardcode encryption keys in source code
+- **Algorithm**: Uses AES-256 encryption with CBC mode and PKCS7 padding
+- **IV Management**: Initialization vectors (IV) are fixed per instance - ensure proper key rotation for production use
+- **Performance**: Encryption/decryption adds computational overhead - consider this for high-throughput scenarios
 
 ## About AI Generation
 

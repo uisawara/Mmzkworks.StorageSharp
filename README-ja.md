@@ -17,6 +17,7 @@ StorageSharpは、単独バイナリファイルとフォルダファイル集�
 - **FileStorage**: ファイルシステムベースのストレージ
 - **MemoryStorage**: メモリベースのストレージ
 - **CachedStorage**: キャッシュ機能付きストレージ
+- **EncryptedStorage**: 任意のIStorage実装をラップするAES-256暗号化ストレージ
 - **StorageRouter**: キーのパターンに基づいて異なるストレージに操作をルーティング
 
 ### アーカイブ機能 (IPacks)
@@ -45,6 +46,26 @@ var storage = new CachedStorage(
     cache: new MemoryStorage(), // キャッシュ用ストレージ
     origin: new FileStorage("OriginStorage") // オリジンストレージ
 );
+```
+
+### 暗号化ストレージの使用
+
+```csharp
+// パスワードでデータを暗号化
+var baseStorage = new FileStorage("EncryptedStorage");
+var encryptedStorage = new EncryptedStorage(baseStorage, "あなたの安全なパスワード");
+
+// 暗号化されたデータの書き込み
+await encryptedStorage.WriteAsync("secret.txt", data);
+
+// データの読み込みと復号化
+var decryptedData = await encryptedStorage.ReadAsync("secret.txt");
+
+// 高度な使用法：カスタム暗号化キーとIVを使用
+var key = new byte[32]; // AES-256用の32バイトキー
+var iv = new byte[16];  // 16バイトIV
+// キーとIVを安全な乱数で初期化...
+var customEncryptedStorage = new EncryptedStorage(baseStorage, key, iv);
 ```
 
 ### ZIPパッケージの使用
@@ -124,6 +145,7 @@ storageSharp/
 │   │   ├── FileStorage.cs           # ファイルストレージ実装
 │   │   ├── MemoryStorage.cs         # メモリストレージ実装
 │   │   ├── CachedStorage.cs         # キャッシュ付きストレージ実装
+│   │   ├── EncryptedStorage.cs      # AES-256暗号化ストレージ実装
 │   │   └── StorageRouter.cs         # ストレージルーティング実装
 │   ├── Packs/
 │   │   ├── IPacks.cs                # アーカイブインターフェース
@@ -168,6 +190,34 @@ await cachedStorage.WriteAsync("cached-file.txt", data);
 
 // 読み込み（キャッシュヒット/ミスが自動管理される）
 var readData = await cachedStorage.ReadAsync("cached-file.txt");
+```
+
+### 暗号化ストレージの使用
+
+```csharp
+// パスワード付き基本暗号化ストレージ
+var baseStorage = new FileStorage("SecureStorage");
+var encryptedStorage = new EncryptedStorage(baseStorage, "MySecurePassword123!");
+
+// 暗号化データの書き込み
+var sensitiveData = System.Text.Encoding.UTF8.GetBytes("このデータは暗号化されます");
+await encryptedStorage.WriteAsync("confidential.txt", sensitiveData);
+
+// 暗号化データの読み込み（自動的に復号化される）
+var decryptedData = await encryptedStorage.ReadAsync("confidential.txt");
+
+// 異なるバックエンドでの暗号化ストレージ使用
+var memoryBackend = new MemoryStorage();
+var encryptedMemory = new EncryptedStorage(memoryBackend, "MemoryPassword");
+
+var cachedBackend = new CachedStorage(new MemoryStorage(), new FileStorage("Cache"));
+var encryptedCached = new EncryptedStorage(cachedBackend, "CachedPassword");
+
+// カスタム暗号化設定
+var customKey = new byte[32]; // AES-256用の32バイトキー
+var customIV = new byte[16];  // AES用の16バイトIV
+// 暗号論的に安全な乱数で埋める...
+var customEncrypted = new EncryptedStorage(baseStorage, customKey, customIV);
 ```
 
 ### ZIPパッケージの使用
@@ -224,6 +274,14 @@ await storageRouter.WriteAsync("regular-file.txt", data); // DefaultStorageに�
 - 一時ファイルは自動的に管理されますが、大量のデータを扱う場合は適切なクリーンアップを考慮してください
 - キャッシュ機能はメモリ使用量に注意して使用してください
 - ZIPパッケージ機能はSharpZipLibライブラリを使用しています
+
+### EncryptedStorageのセキュリティ考慮事項
+
+- **パスワード管理**: 暗号化ストレージのパスワード/キーは適切に管理し、紛失しないよう注意してください
+- **キー保存**: 暗号化キーをソースコードにハードコードしないでください
+- **アルゴリズム**: AES-256暗号化をCBCモードとPKCS7パディングで使用しています
+- **IV管理**: 初期化ベクトル（IV）はインスタンス毎に固定です - 本番環境では適切なキーローテーションを実装してください
+- **パフォーマンス**: 暗号化・復号化は計算処理のオーバーヘッドが発生します - 高スループット環境では考慮してください
 
 ## 生成AIの利用について
 
